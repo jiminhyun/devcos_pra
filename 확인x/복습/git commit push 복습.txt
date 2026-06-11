@@ -1,0 +1,2 @@
+git commit은 add한 파일들에 대하여 한번에 묶어놓아서 메세지로 분류하고 push할 준비를 한다.
+git push는 commit한 파일들을 갖고 repository에 올려놓는 과정이다.
