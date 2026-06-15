@@ -102,6 +102,9 @@ public class MyTreeMap {
     }
 
     public Node remove(Node n, String key) {
+        if(n == null) {
+            return null;
+        }
         if(key.compareTo(n.key) < 0) n.left = remove(n.left, key);
         else if(key.compareTo(n.key) > 0) n.right = remove(n.right, key);
         else { //검색 완료
