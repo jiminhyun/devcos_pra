@@ -1,48 +1,69 @@
 package temp;
 
+import java.awt.*;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.List;
 
 
 class Solution {
-    public int solution(int bridge_length, int weight, int[] truck_weights) {
-        Queue<Integer> waitBri = new LinkedList<>();
-        int capacity = 0;
-        int time = 0;
-        for (int i:truck_weights) {
-            waitBri.add(i);
+    static class Node {
+        int idx;
+        int play;
+
+        public int getPlay() {
+            return play;
         }
-        Queue<Integer> lengthBri = new ArrayBlockingQueue<>(bridge_length); //다리 상태
-        for (int i = 0; i < bridge_length; i++) {
-            lengthBri.add(0);
+
+        public int getIdx() {
+            return idx;
         }
-        while (!waitBri.isEmpty()) {//비어 있어도 내부에 있는 적재량은 안 사라짐
-            capacity -= lengthBri.poll(); //빼기
-            time++;
-            if(capacity + waitBri.peek() <= weight) {
-                int plus = waitBri.poll();
-                lengthBri.add(plus);
-                capacity += plus;
-            } else {
-                lengthBri.add(0);
-            }
-        }//여기까진 문제 없는데 음...?
-        while (capacity != 0) {
-            int check = lengthBri.peek();
-            if(check !=0 && capacity > 0) {
-                capacity -= check;
-                lengthBri.poll();
-                lengthBri.add(0);
-                time++;
-                if(capacity == 0)
-                    return time;
+
+        public Node(int idx, int play) {
+            this.idx = idx;
+            this.play = play;
+        }
+    }
+
+    static class NodeComparator implements Comparator<Node> {
+        @Override
+        public int compare(Node o1, Node o2) {
+            return o2.getPlay()-o1.getPlay();
+        }
+    }
+
+    public int[] solution(String[] genres, int[] plays) {
+        HashMap<String, Integer> cls = new HashMap<>(); //누가 가장 많은지 map
+        HashMap<String, PriorityQueue<Node>> cls2 = new HashMap<>();
+        int[] answer;
+        List<Integer> changeAnswer = new ArrayList<>();
+        for (int i = 0; i < plays.length; i++) {
+            cls.put(genres[i], cls.getOrDefault(genres[i], 0) + plays[i]);
+            cls2.computeIfAbsent(genres[i], k -> new PriorityQueue<>(new NodeComparator()))
+                    .add(new Node(i, plays[i]));
+        }
+        List<String> keyList = cls.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .map(Map.Entry::getKey)
+                .toList(); //많은 순서대로 key정렬
+        for(String i: keyList) {
+            Node checkINode= null;
+            checkINode = cls2.get(i).poll();
+            if(checkINode == null) {
                 continue;
+            } else {
+                changeAnswer.add(checkINode.getIdx());
             }
-            time++;
-            lengthBri.poll();
-            lengthBri.add(0);
+            checkINode = cls2.get(i).poll();
+            if(checkINode == null) {
+                continue;
+            } else {
+                changeAnswer.add(checkINode.getIdx());
+            }
         }
-        return time;
+        answer = changeAnswer.stream()
+                .mapToInt(Integer::intValue)
+                .toArray();
+        return answer;
     }
 }
 
