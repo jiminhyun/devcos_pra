@@ -1,10 +1,12 @@
 package temp;
 
+import homework.Graph;
+
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class Main {
-    public static void bfs(Graph graph, Queue<Integer> queue,int startVertex, boolean[] visited) {
+    public static void bfs(Graph graph, Queue<Integer> queue, int startVertex, boolean[] visited) {
         while (!queue.isEmpty()) {
             int visitVertex = queue.poll();
             System.out.print(visitVertex+ " ");

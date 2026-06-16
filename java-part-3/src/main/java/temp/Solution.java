@@ -4,8 +4,36 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-
 class Solution {
+    public String solution(int[] numbers) {
+        List<String> numbersList = new ArrayList<>();
+        for(int i: numbers) {
+            numbersList.add(String.valueOf(i));
+        }
+
+        numbersList.sort(new Comparator<String>() {
+
+            @Override
+            public int compare(String o1, String o2) {
+                int check = (o1+o2).compareTo(o2+o1);
+                if(check > 0) {
+                    return -1;
+                } else if (check < 0) {
+                    return  1;
+                }
+                return 0;
+            }
+        });
+
+        String answer = "";
+        for (String i:numbersList) {
+            answer += i;
+        }
+        if(answer.charAt(0) == '0') return "0";
+        return answer;
+    }
+}
+/*class Solution {
     static class Node {
         int idx;
         int play;
@@ -65,7 +93,7 @@ class Solution {
                 .toArray();
         return answer;
     }
-}
+}*/
 
 //class Solution {
 //    static class Disk {

@@ -1,11 +1,12 @@
-package temp;
+package homework;
 
-import java.util.*;
+import java.util.LinkedList;
 
-public class Graph {
+public class Graph2 {
+
     LinkedList<Integer>[] adjacencyList;
 
-    public Graph(int vertex) {
+    public Graph2(int vertex) {
         adjacencyList = new LinkedList[vertex+1];
         for (int i = 0; i < vertex+1 ; i++) {
             adjacencyList[i] = new LinkedList<>();
@@ -31,6 +32,4 @@ public class Graph {
             System.out.println();
         }
     }
-
-
 }

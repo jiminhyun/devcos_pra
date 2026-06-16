@@ -1,4 +1,4 @@
-package temp;
+package homework;
 
 public class MyHashMap {
     private static class Node {

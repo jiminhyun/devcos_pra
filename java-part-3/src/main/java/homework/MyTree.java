@@ -1,4 +1,4 @@
-package temp;
+package homework;
 
 public class MyTree {
     static class Node {
