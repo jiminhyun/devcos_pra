@@ -1,35 +1,57 @@
 package temp;
 
+import homework.Graph;
+
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 
 class Solution {
-    public String solution(int[] numbers) {
-        List<String> numbersList = new ArrayList<>();
-        for(int i: numbers) {
-            numbersList.add(String.valueOf(i));
+    ArrayList<ArrayList<Integer>> graph = new ArrayList<>();
+    int[] dist;
+
+    public int solution(int n, int[][] edge) {
+        for (int i = 0; i <= n; i++) {
+            graph.add(new ArrayList<>());
         }
+        for (int[] i :edge) {
+            addEdge(i[0], i[1]);
+        }
+        dist = new int[n+1];
+        dist[1] = 0;
+        boolean[] visited = new boolean[n+1];
 
-        numbersList.sort(new Comparator<String>() {
+        return bfs(1, visited);
+    }
 
-            @Override
-            public int compare(String o1, String o2) {
-                int check = (o1+o2).compareTo(o2+o1);
-                if(check > 0) {
-                    return -1;
-                } else if (check < 0) {
-                    return  1;
+    public void addEdge(int v1, int v2) {
+        graph.get(v1).add(v2);
+        graph.get(v2).add(v1);
+    }
+    public int bfs(int startVertex, boolean[] visited) {
+        visited[startVertex] = true;
+        Queue<Integer> queue = new LinkedList<>();
+        queue.add(startVertex);
+        while (!queue.isEmpty()) {
+            int visitVertex = queue.poll();
+            System.out.print(visitVertex+ " ");
+
+            for(int i: graph.get(visitVertex)) {
+                if(!visited[i]) {
+                    dist[i] = dist[visitVertex] + 1;
+                    visited[i] = true;
+                    queue.add(i);
                 }
-                return 0;
             }
-        });
-
-        String answer = "";
-        for (String i:numbersList) {
-            answer += i;
         }
-        if(answer.charAt(0) == '0') return "0";
+        int answer = 0;
+        int max = 0;
+        for (int i = 1; i < dist.length; i++) {
+            max=Math.max(max, dist[i]);
+        }
+        for (int i = 1; i < dist.length; i++) {
+            if(max == dist[i]) answer++;
+        }
         return answer;
     }
 }
