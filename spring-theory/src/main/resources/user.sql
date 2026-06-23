@@ -9,3 +9,5 @@ CREATE TABLE users (
        name VARCHAR(20) NOT NULL,
        password VARCHAR(20) NOT NULL
 );
+
+select * from users;
