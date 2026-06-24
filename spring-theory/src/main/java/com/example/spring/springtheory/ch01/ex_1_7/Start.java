@@ -1,0 +1,43 @@
+package com.example.spring.springtheory.ch01.ex_1_7;
+
+import com.example.spring.springtheory.ch01.ex_1_6.dao.DaoFactory;
+import com.example.spring.springtheory.ch01.ex_1_6.dao.UserDAO;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+// * 의존관계 주입(DI, Dependency Injection)
+// 스프링 IoC 기능의 대표적인 동작원리는 주로 의존관계 주입이다.
+// 의존한다는 건 의존대상(B)이 변하면 의존하는(A) 오브젝트에 영향을 미친다.
+// A에서 B에 의존하고 있지만, 반대로 B는 A의 의존하지 않는다.
+// 의존하지 않는다는 말은 B는 A의 변화에 영향을 받지 않는다는 뜻이다.
+// 의존관계 주입은 구체적인 의존 오브젝트와 그것을 사용할 주체, 보통 클라이언트라고 부르는 오브젝트를
+// 런타임 시에 연결해 주는 작업을 말한다.
+// 의존관계 주입의 핵심은 설계 시점에서는 알지 못했던 두 오브젝트의 관계를 맺도록 도와주는
+// 제3의 존재가 있다는 것이다.
+
+// ConnectionMaker 인터페이스를 구현한 클래스, 즉 DConnectionMaker 등이
+// 다른 것으로 바뀌거나 그 내부에서 사용하는 메서드에 변화가 생겨도 UserDAO에 영향을 주지 않는다.
+// 이렇게 인터페이스에 대해서만 의존관계를 만들어두면 인터페이스 구현 클래스와의 관계는 느슨해지면서
+// 변화에 영향을 덜 받는 상태가 된다. 결합도가 낮다고 할 수 있다.
+// 모델이나 코드에서 클래스와 인터페이스를 통해 드러난 의존관계 말고,
+// 런타임 시에 오브젝트 사이에서 만들어진 의존관계도 있다.
+// 런타임 의존관계 또는 오브젝트 의존관계인데, 설계 시점의 의존관계가 실체화된 것이라고 볼 수 있다.
+
+public class Start {
+    static void main(String[] args) {
+
+        DaoFactory factory = new DaoFactory();
+        UserDAO useredDAO1 = factory.userDAO();
+        UserDAO useredDAO2 = factory.userDAO();
+
+        System.out.println(useredDAO1);
+        System.out.println(useredDAO2);
+
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
+        UserDAO userDAO3 = context.getBean("userDAO", UserDAO.class);
+        UserDAO userDAO4 = context.getBean("userDAO", UserDAO.class);
+
+        System.out.println(userDAO3);
+        System.out.println(userDAO4);
+
+    }
+}
