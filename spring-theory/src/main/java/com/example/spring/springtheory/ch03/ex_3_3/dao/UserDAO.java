@@ -1,11 +1,10 @@
-package com.example.spring.springtheory.ch03.ex_3_2.dao;
+package com.example.spring.springtheory.ch03.ex_3_3.dao;
 
 
-import com.example.spring.springtheory.ch03.ex_3_2.domain.User;
+import com.example.spring.springtheory.ch03.ex_3_3.domain.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 // * 전략 패턴의 적용
@@ -40,11 +39,33 @@ public class UserDAO {
     }
 
     public void add(User user) throws ClassNotFoundException, SQLException {
-        jdbcContextWithStatementStrategy(new UserDAOAdd(user));
+        class UserDAOAdd implements StatementStrategy {
+
+            @Override
+            public PreparedStatement makeStatement(Connection conn) throws SQLException {
+                PreparedStatement pstmt = conn.prepareStatement("INSERT INTO users (id, name, password) VALUES (?, ?, ?)");
+
+                pstmt.setString(1, user.getId());
+                pstmt.setString(2, user.getName());
+                pstmt.setString(3, user.getPassword());
+
+                return pstmt;
+            }
+        }
+
+        jdbcContextWithStatementStrategy(new UserDAOAdd());
     }
 
     // 테스트 시작 전에 호출해 DB를 깨끗한 상태로 만드는 용도
     public void deleteAll() throws SQLException, ClassNotFoundException {
+        class UserDAODeleteAll implements StatementStrategy {
+
+
+            @Override
+            public PreparedStatement makeStatement(Connection conn) throws SQLException {
+                return conn.prepareStatement("DELETE FROM users");
+            }
+        }
         jdbcContextWithStatementStrategy(new UserDAODeleteAll());
     }
 

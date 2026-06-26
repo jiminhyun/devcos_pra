@@ -1,11 +1,10 @@
-package com.example.spring.springtheory.ch03.ex_3_2.dao;
+package com.example.springtheory.temp_20260626_2.ex_3_3.dao;
 
 
-import com.example.spring.springtheory.ch03.ex_3_2.domain.User;
+import com.example.springtheory.temp_20260626_2.ex_3_3.domain.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 // * 전략 패턴의 적용
@@ -17,15 +16,15 @@ import java.sql.SQLException;
 // 컨텍스트는 '인터페이스(StatementStrategy)에만' 의존하고, 실제 전략은 런타임에 주입받는다.
 // 그래서 새 기능을 추가해도 컨텍스트 코드는 닫혀 있고(수정X) 전략만 새로 만들면 된다(확장O) = OCP.
 
-public class UserDAO {
+public class UserDAO_2 {
 
     private SimpleConnectionMaker simpleConnectionMaker;
 
-    public UserDAO(SimpleConnectionMaker simpleConnectionMaker) {
+    public UserDAO_2(SimpleConnectionMaker simpleConnectionMaker) {
         this.simpleConnectionMaker = simpleConnectionMaker;
     }
 
-    protected UserDAO() {}
+    protected UserDAO_2() {}
 
     // 컨텍스트 : 변하지 않는 JDBC 작업의 공통 흐름 -> jdbcContextWithStatementStrategy
     //  - 커넥션을 얻고, 전달받은 '전략'에게 statement 생성을 맡기고, 실행하고, 자원을 정리한다.
@@ -40,12 +39,33 @@ public class UserDAO {
     }
 
     public void add(User user) throws ClassNotFoundException, SQLException {
-        jdbcContextWithStatementStrategy(new UserDAOAdd(user));
-    }
 
-    // 테스트 시작 전에 호출해 DB를 깨끗한 상태로 만드는 용도
+        StatementStrategy strategy = new StatementStrategy() {
+            @Override
+            public PreparedStatement makeStatement(Connection conn) throws SQLException {
+                PreparedStatement pstmt = conn.prepareStatement("INSERT INTO users (id, name, password) VALUES (?, ?, ?)");
+
+                pstmt.setString(1, user.getId());
+                pstmt.setString(2, user.getName());
+                pstmt.setString(3, user.getPassword());
+
+                return pstmt;
+            }
+        };
+
+            jdbcContextWithStatementStrategy(strategy);
+        };
+
+        // 테스트 시작 전에 호출해 DB를 깨끗한 상태로 만드는 용도
     public void deleteAll() throws SQLException, ClassNotFoundException {
-        jdbcContextWithStatementStrategy(new UserDAODeleteAll());
+
+        StatementStrategy strategy = new StatementStrategy(){
+            @Override
+            public PreparedStatement makeStatement(Connection conn) throws SQLException {
+                return conn.prepareStatement("DELETE FROM users");
+            }
+        };
+        jdbcContextWithStatementStrategy(strategy);
     }
 
 }

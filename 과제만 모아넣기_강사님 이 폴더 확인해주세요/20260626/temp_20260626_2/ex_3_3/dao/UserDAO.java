@@ -1,11 +1,10 @@
-package com.example.spring.springtheory.ch03.ex_3_2.dao;
+package com.example.springtheory.temp_20260626_2.ex_3_3.dao;
 
 
-import com.example.spring.springtheory.ch03.ex_3_2.domain.User;
+import com.example.springtheory.temp_20260626_2.ex_3_3.domain.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 // * 전략 패턴의 적용
@@ -18,11 +17,10 @@ import java.sql.SQLException;
 // 그래서 새 기능을 추가해도 컨텍스트 코드는 닫혀 있고(수정X) 전략만 새로 만들면 된다(확장O) = OCP.
 
 public class UserDAO {
+    private JdbcContext jdbcContext;
 
-    private SimpleConnectionMaker simpleConnectionMaker;
-
-    public UserDAO(SimpleConnectionMaker simpleConnectionMaker) {
-        this.simpleConnectionMaker = simpleConnectionMaker;
+    public UserDAO(JdbcContext jdbcContext) {
+        this.jdbcContext = jdbcContext;
     }
 
     protected UserDAO() {}
@@ -30,22 +28,36 @@ public class UserDAO {
     // 컨텍스트 : 변하지 않는 JDBC 작업의 공통 흐름 -> jdbcContextWithStatementStrategy
     //  - 커넥션을 얻고, 전달받은 '전략'에게 statement 생성을 맡기고, 실행하고, 자원을 정리한다.
 //  - 어떤 SQL을 실행할지는 전혀 모른다. 그건 strategy가 결정한다(인터페이스에만 의존).
-    public void jdbcContextWithStatementStrategy(StatementStrategy statementStrategy) throws SQLException, ClassNotFoundException {
-        try (
-                Connection conn = simpleConnectionMaker.makeNewConnection();
-                PreparedStatement pstmt = statementStrategy.makeStatement(conn); // 변하는 부분을 전략(statementStrategy)에 위임
-        ) {
-            pstmt.executeUpdate();
-        }
-    }
 
     public void add(User user) throws ClassNotFoundException, SQLException {
-        jdbcContextWithStatementStrategy(new UserDAOAdd(user));
+        class UserDAOAdd implements StatementStrategy {
+
+            @Override
+            public PreparedStatement makeStatement(Connection conn) throws SQLException {
+                PreparedStatement pstmt = conn.prepareStatement("INSERT INTO users (id, name, password) VALUES (?, ?, ?)");
+
+                pstmt.setString(1, user.getId());
+                pstmt.setString(2, user.getName());
+                pstmt.setString(3, user.getPassword());
+
+                return pstmt;
+            }
+        }
+
+        jdbcContext.jdbcContextWithStatementStrategy(new UserDAOAdd());
     }
 
     // 테스트 시작 전에 호출해 DB를 깨끗한 상태로 만드는 용도
     public void deleteAll() throws SQLException, ClassNotFoundException {
-        jdbcContextWithStatementStrategy(new UserDAODeleteAll());
+        class UserDAODeleteAll implements StatementStrategy {
+
+
+            @Override
+            public PreparedStatement makeStatement(Connection conn) throws SQLException {
+                return conn.prepareStatement("DELETE FROM users");
+            }
+        }
+        jdbcContext.jdbcContextWithStatementStrategy(new UserDAODeleteAll());
     }
 
 }
