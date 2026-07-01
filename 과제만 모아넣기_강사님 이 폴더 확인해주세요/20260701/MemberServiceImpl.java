@@ -1,0 +1,12 @@
+package com.example.springtheory.temp_20260701;
+
+public class MemberServiceImpl implements MemberService{
+    @Override
+    public String register(String id) {
+        sleep(50);                       // 실제 작업 흉내
+        return "가입완료: " + id;
+    }
+    private void sleep(long ms) {
+        try { Thread.sleep(ms); } catch (InterruptedException ignored) {} //안티 패턴
+    }
+}
