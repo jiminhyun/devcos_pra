@@ -1,3 +1,7 @@
 spring:
   application:
     name: assignment
+
+weather:
+  api:
+    key: 06d5e144c2fd922e610e8335dafd03ae5dcdf4efc7c112652fb2b86d53525e23
