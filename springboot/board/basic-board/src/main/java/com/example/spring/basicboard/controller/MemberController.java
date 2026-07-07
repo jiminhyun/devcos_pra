@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/members")
 public class MemberController {
+
     @GetMapping("/join")
     public String join() {
         return "sign-up";
@@ -16,4 +17,5 @@ public class MemberController {
     public String login() {
         return "sign-in";
     }
+
 }
