@@ -50,3 +50,4 @@ INSERT INTO board (title, content, user_id, file_path, created) VALUES
                                                                     ('스무 번째 게시글', '시드 데이터 마지막 글입니다. 수고하셨습니다!', 'hong', NULL, '2026-06-20 13:00:00');
 
 select * from board;
+select * from member;

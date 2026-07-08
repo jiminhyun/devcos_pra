@@ -14,6 +14,7 @@
 
     <form id="writeForm" enctype="multipart/form-data">
         <!-- 서버로 실제 전송되는 작성자 아이디 (DTO 의 userId 필드와 name 이 같아야 바인딩된다) -->
+        <!--name이 dto 매핑, value는 model 매핑-->
         <input id="hiddenUserId" name="userId" type="hidden" th:value="${userId}">
         <input id="hiddenUserName" name="hiddenUserName" type="hidden" th:value="${userName}">
 
