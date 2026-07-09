@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: assignment
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/java_basic?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: ei32ikf
+
+weather:
+  api:
+    key: 06d5e144c2fd922e610e8335dafd03ae5dcdf4efc7c112652fb2b86d53525e23
+
+file:
+  upload-dir: ./uploads
+
+
+
+# spring:
+#  jpa:
+#    hibernate:
+#      ddl-auto: update # 엔티티 변경 시 테이블 자동 수정
+#    show-sql: true     # 실행되는 SQL을 콘솔에 보여줌
+#    properties:
+#      hibernate:
+#        format_sql: true # SQL을 예쁘게 출력

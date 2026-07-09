@@ -1,0 +1,14 @@
+file:
+  upload-dir: ./build/test-uploads
+spring:
+  datasource:
+    url: jdbc:h2:mem:testH2;MODE=MySQL;DB_CLOSE_DELAY=-1  # MySQL 문법 호환 인메모리 H2
+    driver-class-name: org.h2.Driver
+    username: none
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # 실행시 생성 종료시 삭제 현재 h2쓰므로 안전
+  sql:
+    init:
+      mode: never
