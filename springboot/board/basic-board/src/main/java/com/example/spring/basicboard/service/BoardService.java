@@ -3,9 +3,12 @@ package com.example.spring.basicboard.service;
 import com.example.spring.basicboard.domain.entity.Board;
 import com.example.spring.basicboard.domain.repository.BoardRepository;
 import com.example.spring.basicboard.dto.BoardDeleteRequestDto;
+import com.example.spring.basicboard.dto.BoardListItemResponseDto;
+import com.example.spring.basicboard.dto.BoardSearchRequestDto;
 import com.example.spring.basicboard.dto.BoardUpdateRequestDto;
 import com.example.spring.basicboard.exception.BoardNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -66,24 +68,39 @@ public class BoardService {
     @Transactional
     public void updateBoard(long id, BoardUpdateRequestDto dto) {
         Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new BoardNotFoundException("[BOARD] 수정할 게시글을 찾을 수 없습니다. id: " + id));
+                .orElseThrow(
+                        () -> new BoardNotFoundException("[BOARD] 수정할 게시글을 찾을 수 없습니다. id : " + id)
+                );
 
         String filePath = board.getFilePath();
-        if(dto.isFileFlag()) { // 파일 변경이 있었을 경우
+        if ( dto.isFileFlag() ) { // 파일 변경이 있었을 경우
             fileService.deleteFile(filePath); // 기존 파일 삭제
             filePath = fileService.storeFile(dto.getFile()); // 새 파일 저장
         }
 
-        board.update(dto.getTitle(), dto.getContent(), filePath);
+        board.update( dto.getTitle(), dto.getContent(), filePath );
     }
 
     @Transactional
     public void deleteBoard(long id, BoardDeleteRequestDto dto) {
-        if(!boardRepository.existsById(id)) {
+
+        if ( !boardRepository.existsById(id) ) {
             throw new BoardNotFoundException("[BOARD] 삭제할 게시글을 찾을 수 없습니다. id : " + id);
         }
+
         boardRepository.deleteById(id);
         fileService.deleteFile(dto.getFilePath());
+    }
+
+    public Page<BoardListItemResponseDto> searchBoards(BoardSearchRequestDto dto, Pageable pageable) {
+        return boardRepository.searchBoards(dto, pageable);
+    }
+
+    public Board getBoardWithComments(Long id) {
+        return boardRepository.findWithComments(id)
+                .orElseThrow(
+                        ()-> new BoardNotFoundException("게시글을 찾을 수 없습니다. id = "+id)
+                );
     }
 
 }

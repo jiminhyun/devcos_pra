@@ -2,7 +2,7 @@ package com.example.spring.basicboard.controller;
 
 import com.example.spring.basicboard.domain.entity.Board;
 import com.example.spring.basicboard.dto.*;
-import com.example.spring.basicboard.exception.BoardNotFoundException;
+import com.example.spring.basicboard.mapper.BoardMapper;
 import com.example.spring.basicboard.service.BoardService;
 import com.example.spring.basicboard.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,10 +14,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLEncoder;
@@ -31,6 +33,10 @@ import java.util.List;
 // - @ApiResponse(s)      : 이 API가 낼 수 있는 응답(상태코드별)을 문서에 명시
 // - @Content / @Schema   : 응답/요청 본문의 "형태(어떤 DTO인지)"를 지정
 
+// * 뷰 컨트롤러(@Controller + 뷰 이름 반환)는 이 설정과 무관하게 원래 문서에 안 나온다.
+// - springdoc 은 @ResponseBody(= @RestController) 핸들러만 문서화 대상으로 삼기 때문이다.
+// -(BoardController/MemberController 는 "board-list" 같은 뷰 이름을 반환하므로 애초에 제외된다)
+
 @Tag( name = "게시글 API", description = "게시글 목록/상세 조회, 작성, 수정, 삭제, 첨부파일 다운로드" )
 @RestController
 @RequiredArgsConstructor
@@ -39,6 +45,7 @@ public class BoardApiController {
 
     private final BoardService boardService;
     private final FileService fileService;
+    private final BoardMapper boardMapper;
 
     @Operation(
             summary = "게시글 목록 조회",
@@ -161,17 +168,62 @@ public class BoardApiController {
     @Operation(summary = "게시글 수정",
             description = "경로의 id 게시글을 수정한다. 파일 교체가 가능하도록 multipart/form-data 로 받는다.")
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public void updateBoard(@Parameter(description = "수정할 게시글 id", example = "1") @PathVariable long id,
-                            @ModelAttribute BoardUpdateRequestDto dto) {
+    public void updateBoard(
+            @Parameter(description = "수정할 게시글 id", example = "1")
+            @PathVariable long id,
+            @RequestBody BoardUpdateRequestDto dto) {
         boardService.updateBoard(id, dto);
     }
 
     @Operation(summary = "게시글 삭제",
             description = "경로의 id 게시글을 삭제한다. 첨부파일 경로(filePath)를 JSON 본문으로 함께 받아 파일도 정리한다.")
     @DeleteMapping("/{id}")
-    public void deleteBoard(@Parameter(description = "삭제할 게시글 id", example = "1") @PathVariable long id,
-                            @RequestBody BoardDeleteRequestDto dto) {
+    public void deleteBoard(
+            @Parameter(description = "삭제할 게시글 id", example = "1")
+            @PathVariable long id,
+            @RequestBody BoardDeleteRequestDto dto
+    ) {
         boardService.deleteBoard(id, dto);
     }
+
+    // ========== [QueryDSL] ==========
+
+    // * @ModelAttribute
+    // 검색 조건은 @ModelAttribute로 쿼리 파라미터로 받는다. (?title=...&userId=...&from=..&to=..)
+    // 반환은 Page<BoardListItemResponseDto> - content(목록) + totalElements/totalPages 등 페이징 정보가 함께 담긴다.
+    // (Page를 그대로 응답하면 스프링이 구조적 안정성 경고를 낼 수 있다.
+    // 실무에서 별도 응답 DTO로 감싸는 것을 권장한다.)
+    @Operation(
+            summary = "게시글 검색",
+            description = "제목/작성자/작성기간으로 동적 검색한다. 작성자 이름(member)과 댓글 수(comment)를 함께 내려준다."
+    )
+    @GetMapping("/search")
+    public Page<BoardListItemResponseDto> searchBoards( //js에서 Page는 content(<dto>의 필드)를 갖는다.
+            @ModelAttribute BoardSearchRequestDto dto,
+            @Parameter( description = "조회할 페이지 번호 (1부터 시작)", example = "1" )
+            @RequestParam(defaultValue = "1") int page,
+            @Parameter( description = "한 페이지에 담을 게시글 수", example = "10" )
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return boardService.searchBoards(dto, pageable);
+    }
+
+    @Operation(summary = "게시글 상세 + 댓글",
+            description = "게시글 한 건과 그에 달린 댓글 목록을 fetch join 으로 한 번에 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 id 의 게시글이 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    })
+    @GetMapping("/{id}/with-comments")
+    public BoardWithCommentsResponseDto getBoardComments(
+            @Parameter(description = "조회할 게시글 id", example = "1")
+            @PathVariable long id
+    ) {
+        Board board = boardService.getBoardWithComments(id);
+        return boardMapper.toBoardWithCommentsResponseDto(board);
+    }
+
 
 }
